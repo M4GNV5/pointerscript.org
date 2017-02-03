@@ -39,6 +39,7 @@ struct RunningProcess
 };
 
 var buff{4096};
+var lock{64};
 var fdset;
 var procs;
 
@@ -49,6 +50,8 @@ function waiter(sendfd)
 		var pid = wait!i32(NULL);
 		if(pid < 0)
 			return;
+
+		pthread_mutex_lock(lock);
 
 		var proc = procs.find((p) -> p.pid == pid);
 
@@ -68,6 +71,8 @@ function waiter(sendfd)
 
 		procs.remove(proc);
 		delete proc;
+
+		pthread_mutex_unlock(lock);
 	}
 }
 
@@ -79,6 +84,9 @@ function timeoutProc(pid)
 
 function watchdog(sendfd, receivefd)
 {
+	pthread_mutex_init(lock, NULL);
+	pthread_mutex_lock(lock);
+
 	var thread = 0;
 	fdset = new SocketSet();
 	procs = new List();
@@ -86,8 +94,13 @@ function watchdog(sendfd, receivefd)
 
 	while(true) scoped
 	{
+		pthread_mutex_unlock(lock);
+
 		var fd;
 		try fd = fdset.check();
+
+		pthread_mutex_lock(lock);
+
 		if(!fd)
 			continue;
 

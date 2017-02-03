@@ -1,11 +1,12 @@
 import puts, read, write;
 import pthread_* from "libpthread.so.0";
 import List from "ptrslibs/list.ptrs";
+import MutexWrap from "ptrslibs/mutex.ptrs";
 import libwebsock_client, WebSocketServer from "ptrslibs/websocket.ptrs";
 
 const PORT = "8004";
 
-var clients = new List();
+var clients;
 
 function worker(fd)
 {
@@ -27,6 +28,8 @@ function worker(fd)
 
 function server(sendfd, receivefd)
 {
+	clients = new MutexWrap(new List());
+
 	var thread = 0;
 	pthread_create(&thread, NULL, worker, receivefd);
 	//detach?
