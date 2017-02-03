@@ -3,7 +3,7 @@ import pthread_* from "libpthread.so.0";
 import List from "ptrslibs/list.ptrs";
 import libwebsock_client, WebSocketServer from "ptrslibs/websocket.ptrs";
 
-const PORT = "6060";
+const PORT = "8004";
 
 var clients = new List();
 
@@ -17,10 +17,11 @@ function worker(fd)
 			throw "read error";
 
 		var client = clients.find((c) -> as<int>(c.userdata) == id);
-
 		var len = read!ssize(fd, buff, 4095);
 		buff[len] = 0;
-		client.send(buff);
+
+		if(client)
+			client.send(buff);
 	}
 }
 
@@ -45,6 +46,7 @@ function server(sendfd, receivefd)
 	};
 	wss.onmessage = function(client, msg, len)
 	{
+		puts("onmessage len = ${sizeof msg}");
 		if(sizeof msg > 4096)
 			return;
 

@@ -6,7 +6,7 @@ editor.setOption("fontSize", 11);
 var runBtn = document.getElementById("runBtn");
 var out = document.getElementById("outtext");
 
-var ws = new WebSocket("ws:/127.0.0.1:6060");
+var ws = new WebSocket("wss://pointerscript.org:8003");
 ws.onopen = function()
 {
 	runBtn.disabled = false;

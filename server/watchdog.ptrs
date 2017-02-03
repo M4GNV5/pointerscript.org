@@ -1,4 +1,4 @@
-import puts, fork, exit, waitpid, kill, getpid, sched_yield,
+import puts, fork, exit, wait, kill, getpid, sched_yield,
 	pipe, dup2, execlp, close, read, write,
 	access, chdir, chmod, creat, remove,
 	setuid, setgid;
@@ -38,24 +38,29 @@ struct RunningProcess
 	}
 };
 
-function watchdog(sendfd, receivefd)
-{
-	var buff{4096};
-	var fdset = new SocketSet();
-	var procs = new List();
-	fdset.add(receivefd);
+var buff{4096};
+var fdset;
+var procs;
 
-	function cleanupProc(pid)
+function waiter(sendfd)
+{
+	while(true)
 	{
+		var pid = wait!i32(NULL);
+		if(pid < 0)
+			return;
+
 		var proc = procs.find((p) -> p.pid == pid);
 
-		puts("cleaning up ${proc.id}");
+		var len;
+		while((len = read!ssize(proc.pipefd, buff, 4095)) > 0)
+		{
+			write(sendfd, &proc.id, sizeof(pointer));
+			write(sendfd, buff, len);
+		}
 
 		fdset.remove(proc.pipefd);
 		close(proc.pipefd);
-		kill(-proc.pid, SIGKILL);
-		kill(proc.pid, SIGKILL);
-		waitpid(proc.pid, NULL, 0);
 		remove("$PATH/play$pid.ptrs");
 
 		write(sendfd, &proc.id, sizeof(pointer));
@@ -64,6 +69,20 @@ function watchdog(sendfd, receivefd)
 		procs.remove(proc);
 		delete proc;
 	}
+}
+
+function timeoutProc(pid)
+{
+	kill(-pid, SIGKILL);
+	kill(pid, SIGKILL);
+}
+
+function watchdog(sendfd, receivefd)
+{
+	var thread = 0;
+	fdset = new SocketSet();
+	procs = new List();
+	fdset.add(receivefd);
 
 	while(true) scoped
 	{
@@ -120,7 +139,10 @@ function watchdog(sendfd, receivefd)
 				write(fd, buff, len);
 				close(fd);
 
-				var job = setTimeout(cleanupProc, MAX_TIME, pid);
+				if(procs.length == 0)
+					pthread_create(&thread, NULL, waiter, sendfd);
+
+				var job = setTimeout(timeoutProc, MAX_TIME, pid);
 				procs.add(new RunningProcess(id, pid, pipes.readfd, job));
 				fdset.add(pipes.readfd);
 
