@@ -3,25 +3,48 @@ editor.setTheme("ace/theme/monokai");
 editor.getSession().setMode("ace/mode/javascript");
 editor.setOption("fontSize", 11);
 
+var runBtn = document.getElementById("runBtn");
 var out = document.getElementById("outtext");
 
 var ws = new WebSocket("ws:/127.0.0.1:6060");
+ws.onopen = function()
+{
+	runBtn.disabled = false;
+	runBtn.innerHTML = "run";
+};
 ws.onmessage = function(msg)
 {
 	console.log(msg.data);
-	out.innerHTML += msg.data.replace(/</g, "&lt;");
+
+	if(msg.data == "running")
+	{
+		runBtn.innerHTML = "running";
+		out.innerHTML = "";
+	}
+	else if(msg.data == "ready")
+	{
+		runBtn.disabled = false;
+		runBtn.innerHTML = "run";
+	}
+	else
+	{
+		out.innerHTML += msg.data.replace(/</g, "&lt;");
+	}
 };
 ws.onerror = function(e)
 {
-	//out.innerHTML += e.toString();
+	runBtn.disabled = true;
+	runBtn.innerHTML = "error";
 };
 
 function runCode()
 {
-	out.innerHTML = "";
+	runBtn.innerHTML = "starting";
 	try
 	{
 		ws.send(editor.getValue());
+
+		runBtn.disabled = true;
 	}
 	catch(e)
 	{

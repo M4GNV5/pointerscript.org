@@ -58,7 +58,11 @@ function watchdog(sendfd, receivefd)
 		waitpid(proc.pid, NULL, 0);
 		remove("$PATH/play$pid.ptrs");
 
+		write(sendfd, &proc.id, sizeof(pointer));
+		write(sendfd, "ready", 5);
+
 		procs.remove(proc);
+		delete proc;
 	}
 
 	while(true) scoped
@@ -119,6 +123,9 @@ function watchdog(sendfd, receivefd)
 				var job = setTimeout(cleanupProc, MAX_TIME, pid);
 				procs.add(new RunningProcess(id, pid, pipes.readfd, job));
 				fdset.add(pipes.readfd);
+
+				write(sendfd, &id, sizeof(pointer));
+				write(sendfd, "running", 7);
 				chmod(file, 0644); //rw- r-- r--
 			}
 		}
@@ -127,7 +134,6 @@ function watchdog(sendfd, receivefd)
 			var proc = procs.find((p) -> p.pipefd == fd);
 
 			var count = read!ssize(fd, buff, 4095);
-			puts("OUTPUT | ${proc.id} | ${buff[0 .. count]}");
 			if(count <= 0)
 				throw "read error";
 
