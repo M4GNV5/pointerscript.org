@@ -1,0 +1,36 @@
+import pipe;
+import lxc_* from "liblxc.so";
+import lxc_container, lxc_attach_options from "./lxc.ptrs";
+import watchdog from "./watchdog.ptrs";
+import server from "./server.ptrs";
+
+const CONTAINER_NAME = "test";
+
+struct pipearg
+{
+	readfd : int;
+	writefd : int;
+};
+
+var c = lxc_container_new!native(CONTAINER_NAME, NULL);
+if(c == NULL)
+	throw "lxc_container failed";
+
+c = cast<lxc_container>c;
+
+if(!c.is_running!char(c))
+	throw "container is not running";
+
+var dog2serv : pipearg();
+var serv2dog : pipearg();
+pipe(dog2serv);
+pipe(serv2dog);
+
+scoped
+{
+	var pid = 0;
+	var options : lxc_attach_options();
+	c.attach(c, (arg) -> watchdog(dog2serv.writefd, serv2dog.readfd), NULL, options, &pid);
+}
+
+server(serv2dog.writefd, dog2serv.readfd);

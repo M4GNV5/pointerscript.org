@@ -1,0 +1,56 @@
+import puts, read, write;
+import pthread_* from "libpthread.so.0";
+import List from "../../PtrsStuff/libs/list.ptrs";
+import libwebsock_client, WebSocketServer from "../../PtrsStuff/libs/websocket.ptrs";
+
+const PORT = "6060";
+
+var clients = new List();
+
+function worker(fd)
+{
+	var buff{4096};
+	while(true)
+	{
+		var id = 0;
+		if(read!ssize(fd, &id, sizeof(pointer)) != sizeof(pointer))
+			throw "read error";
+
+		var client = clients.find((c) -> as<int>(c.userdata) == id);
+
+		var len = read!ssize(fd, buff, 4095);
+		buff[len] = 0;
+		client.send(buff);
+	}
+}
+
+function server(sendfd, receivefd)
+{
+	var thread = 0;
+	pthread_create(&thread, NULL, worker, receivefd);
+	//detach?
+
+	var nextId = 1;
+	var wss = new WebSocketServer(PORT);
+	wss.onopen = function(client)
+	{
+		puts("onopen");
+		client.userdata = nextId++;
+		clients.add(cast<libwebsock_client>cast<native>client);
+	};
+	wss.onclose = function(client)
+	{
+		puts("onclose");
+		delete clients.remove(client, (curr) -> curr.userdata == client.userdata);
+	};
+	wss.onmessage = function(client, msg, len)
+	{
+		if(sizeof msg > 4096)
+			return;
+
+		write(sendfd, &client.userdata, sizeof(pointer));
+		write(sendfd, msg, sizeof msg);
+	};
+
+	wss.listen();
+}

@@ -1,0 +1,138 @@
+import puts, fork, exit, waitpid, kill, getpid, sched_yield,
+	pipe, dup2, execlp, close, read, write,
+	access, chdir, chmod, creat, remove,
+	setuid, setgid;
+import pthread_* from "libpthread.so.0";
+
+import List from "../../PtrsStuff/libs/list.ptrs";
+import SocketSet from "../../PtrsStuff/libs/socket.ptrs";
+import setTimeout, clearTimeout from "../../PtrsStuff/libs/timeout.ptrs";
+
+const MAX_TIME = 3000;
+const PATH = "/home/play";
+const GROUP_ID = 1000;
+const USER_ID = 1000;
+
+const R_OK = 4;
+const SIGKILL = 9;
+
+struct pipearg
+{
+	readfd : int;
+	writefd : int;
+};
+
+struct RunningProcess
+{
+	id;
+	pid;
+	pipefd;
+	timeout;
+
+	constructor(_id, _pid, _pipefd, _timeout)
+	{
+		id = _id;
+		pid = _pid;
+		pipefd = _pipefd;
+		timeout = _timeout;
+	}
+};
+
+function watchdog(sendfd, receivefd)
+{
+	var buff{4096};
+	var fdset = new SocketSet();
+	var procs = new List();
+	fdset.add(receivefd);
+
+	function cleanupProc(pid)
+	{
+		var proc = procs.find((p) -> p.pid == pid);
+
+		puts("cleaning up ${proc.id}");
+
+		fdset.remove(proc.pipefd);
+		close(proc.pipefd);
+		kill(-proc.pid, SIGKILL);
+		kill(proc.pid, SIGKILL);
+		waitpid(proc.pid, NULL, 0);
+		remove("$PATH/play$pid.ptrs");
+
+		procs.remove(proc);
+	}
+
+	while(true) scoped
+	{
+		var fd;
+		try fd = fdset.check();
+		if(!fd)
+			continue;
+
+		if(fd == receivefd)
+		{
+			var id = 0;
+			if(read!ssize(receivefd, &id, sizeof(pointer)) != sizeof(pointer))
+				throw "read error";
+
+			var len = read!ssize(receivefd, buff, 4096);
+			if(len <= 0)
+				throw "read error";
+
+			if(procs.find((p) -> p.id == id))
+				continue;
+
+			var pipes : pipearg();
+			pipe(pipes);
+
+			var pid = fork!i32();
+			if(pid == 0)
+			{
+				pid = getpid();
+
+				close(pipes.readfd);
+				dup2(pipes.writefd, 1);
+				dup2(pipes.writefd, 2);
+
+				if(setgid!int(GROUP_ID) != 0 || setuid!int(USER_ID) != 0)
+					throw "setgid/setuid failed";
+
+				chdir(PATH);
+				var file = "$PATH/play$pid.ptrs";
+
+				while(access!int(file, R_OK) != 0)
+					sched_yield();
+
+				execlp("ptrs", "ptrs", file, NULL);
+
+				puts("execlp failed");
+				exit(1);
+			}
+			else
+			{
+				close(pipes.writefd);
+
+				var file = "$PATH/play$pid.ptrs";
+				fd = creat(file, 0600); //rw- --- ---
+				write(fd, buff, len);
+				close(fd);
+
+				var job = setTimeout(cleanupProc, MAX_TIME, pid);
+				procs.add(new RunningProcess(id, pid, pipes.readfd, job));
+				fdset.add(pipes.readfd);
+				chmod(file, 0644); //rw- r-- r--
+			}
+		}
+		else
+		{
+			var proc = procs.find((p) -> p.pipefd == fd);
+
+			var count = read!ssize(fd, buff, 4095);
+			puts("OUTPUT | ${proc.id} | ${buff[0 .. count]}");
+			if(count <= 0)
+				throw "read error";
+
+			write(sendfd, &proc.id, sizeof(pointer));
+			write(sendfd, buff, count);
+		}
+	}
+}
