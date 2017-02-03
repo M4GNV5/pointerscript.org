@@ -50,7 +50,7 @@ function server(sendfd, receivefd)
 	wss.onmessage = function(client, msg, len)
 	{
 		puts("onmessage len = ${sizeof msg}");
-		if(sizeof msg > 4096)
+		if(sizeof msg <= 1 || sizeof msg > 4096)
 			return;
 
 		write(sendfd, &client.userdata, sizeof(pointer));

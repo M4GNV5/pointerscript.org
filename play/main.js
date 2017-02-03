@@ -37,6 +37,11 @@ ws.onerror = function(e)
 	runBtn.innerHTML = "error";
 };
 
+setInterval(function()
+{
+	ws.send("");
+}, 20000);
+
 function runCode()
 {
 	runBtn.innerHTML = "starting";

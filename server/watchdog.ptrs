@@ -1,7 +1,7 @@
 import puts, fork, exit, wait, kill, getpid, sched_yield,
 	pipe, dup2, execlp, close, read, write,
 	access, chdir, chmod, creat, remove,
-	setuid, setgid;
+	setuid, setgid, setrlimit;
 import pthread_* from "libpthread.so.0";
 
 import List from "ptrslibs/list.ptrs";
@@ -9,17 +9,26 @@ import SocketSet from "ptrslibs/socket.ptrs";
 import setTimeout, clearTimeout from "ptrslibs/timeout.ptrs";
 
 const MAX_TIME = 3000;
+const MAX_PROCS = 80;
 const PATH = "/home/play";
 const GROUP_ID = 1000;
 const USER_ID = 1000;
 
 const R_OK = 4;
 const SIGKILL = 9;
+const RLIMIT_NPROC = 6;
+const RLIMIT_NOFILE = 7;
+const RLIMIT_AS = 9;
 
 struct pipearg
 {
 	readfd : int;
 	writefd : int;
+};
+struct rlimit
+{
+	soft : u64;
+	hard : u64;
 };
 
 struct RunningProcess
@@ -78,8 +87,8 @@ function waiter(sendfd)
 
 function timeoutProc(pid)
 {
-	kill(-pid, SIGKILL);
 	kill(pid, SIGKILL);
+	kill(-pid, SIGKILL);
 }
 
 function watchdog(sendfd, receivefd)
@@ -129,6 +138,17 @@ function watchdog(sendfd, receivefd)
 				dup2(pipes.writefd, 1);
 				dup2(pipes.writefd, 2);
 
+				var limit : rlimit();
+				limit.soft = 0x2000000; //32MB
+				limit.hard = 0x2000000;
+				setrlimit(RLIMIT_AS, limit);
+				limit.soft = MAX_PROCS;
+				limit.hard = MAX_PROCS;
+				setrlimit(RLIMIT_NPROC, limit);
+				limit.soft = 8;
+				limit.hard = 8;
+				setrlimit(RLIMIT_NOFILE, limit);
+
 				if(setgid!int(GROUP_ID) != 0 || setuid!int(USER_ID) != 0)
 					throw "setgid/setuid failed";
 
@@ -140,6 +160,8 @@ function watchdog(sendfd, receivefd)
 
 				execlp("ptrs", "ptrs", file, NULL);
 
+				import perror;
+				perror("execlp");
 				puts("execlp failed");
 				exit(1);
 			}
