@@ -4,7 +4,7 @@ import lxc_container, lxc_attach_options from "./lxc.ptrs";
 import watchdog from "./watchdog.ptrs";
 import server from "./server.ptrs";
 
-const CONTAINER_NAME = "test";
+const CONTAINER_NAME = "ptrs";
 
 struct pipearg
 {

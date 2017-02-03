@@ -1,7 +1,7 @@
 import puts, read, write;
 import pthread_* from "libpthread.so.0";
-import List from "../../PtrsStuff/libs/list.ptrs";
-import libwebsock_client, WebSocketServer from "../../PtrsStuff/libs/websocket.ptrs";
+import List from "ptrslibs/list.ptrs";
+import libwebsock_client, WebSocketServer from "ptrslibs/websocket.ptrs";
 
 const PORT = "6060";
 

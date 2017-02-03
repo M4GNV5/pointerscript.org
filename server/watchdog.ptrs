@@ -4,9 +4,9 @@ import puts, fork, exit, waitpid, kill, getpid, sched_yield,
 	setuid, setgid;
 import pthread_* from "libpthread.so.0";
 
-import List from "../../PtrsStuff/libs/list.ptrs";
-import SocketSet from "../../PtrsStuff/libs/socket.ptrs";
-import setTimeout, clearTimeout from "../../PtrsStuff/libs/timeout.ptrs";
+import List from "ptrslibs/list.ptrs";
+import SocketSet from "ptrslibs/socket.ptrs";
+import setTimeout, clearTimeout from "ptrslibs/timeout.ptrs";
 
 const MAX_TIME = 3000;
 const PATH = "/home/play";
