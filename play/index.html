@@ -1,0 +1,29 @@
+<html>
+	<head>
+		<link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.min.css" rel="stylesheet" />
+		<link href="styles.css" rel="stylesheet" />
+	</head>
+	<body>
+		<div id="editor">import puts, qsort from "libc.so.6";
+
+var nums[4] = [1337, 42, 666, 31.12];
+
+qsort(nums, sizeof nums, sizeof var, (a, b) -> *as&lt;pointer>a - *as&lt;pointer>b);
+
+foreach(i, val in nums)
+{
+	puts("nums[$i] = $val");
+}
+</div>
+
+		<div id="out">
+			<button class="btn" onclick="runCode();">Run</button>
+			<!-- TODO dropdown with examples -->
+
+			<pre id="outtext"></pre>
+		</div>
+
+		<script src="//cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/ace.js" type="text/javascript"></script>
+		<script src="main.js" type="text/javascript"></script>
+	</body>
+</html>
