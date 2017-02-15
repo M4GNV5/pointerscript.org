@@ -1,7 +1,7 @@
 var editor = ace.edit("editor");
 editor.setTheme("ace/theme/monokai");
 editor.getSession().setMode("ace/mode/javascript");
-editor.setOption("fontSize", 11);
+editor.setOption("fontSize", 14);
 
 var runBtn = document.getElementById("runBtn");
 var out = document.getElementById("outtext");
