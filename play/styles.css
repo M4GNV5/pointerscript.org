@@ -29,3 +29,14 @@ body
 {
     float: left;
 }
+#runBtn
+{
+	text-decoration:none;
+	text-align:center;
+	padding: 10px 20px;
+	border:solid 1px;
+	border-radius: 4px;
+	font-weight:bold;
+	color: #E5FFFF;
+	background-color: #3BA4C7;
+}
