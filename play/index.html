@@ -7,19 +7,19 @@
 	</head>
 	<body>
 		<div id="editor">//import libc functions
-import puts, qsort;
+			import puts, qsort;
 
-var nums[4] = [1337, 666, 3112, 42];
+			var nums[4] = [1337, 666, 3112, 42];
 
-//sort the array 'nums' using qsort
-qsort(nums, sizeof nums, sizeof var, (a, b) -> *as&lt;pointer>a - *as&lt;pointer>b);
+			//sort the array 'nums' using qsort
+			qsort(nums, sizeof nums, sizeof var, (a, b) -> *as&lt;pointer>a - *as&lt;pointer>b);
 
-//output the array
-foreach(i, val in nums)
-{
-	puts("nums[$i] = $val");
-}
-</div>
+			//output the array
+			foreach(i, val in nums)
+			{
+				puts("nums[$i] = $val");
+			}
+		</div>
 
 		<div id="out">
 			<button id="runBtn" onclick="runCode();">connecting</button>

@@ -1,5 +1,5 @@
-#ace editor files
-#for building ace with pointerscript support run
+# ace editor files
+# for building ace with pointerscript support run
 #	cson2json language-pointerscript/grammars/pointerscript.cson > ptrs.json
 #	cd ace/tools
 #	npm install
@@ -7,3 +7,4 @@
 #	cd ..
 #	node Makefile.dryice.js
 play/ace
+.vscode
