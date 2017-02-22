@@ -105,7 +105,7 @@ function watchdog(sendfd, receivefd)
 	{
 		pthread_mutex_unlock(lock);
 
-		var fd;
+		var fd = false;
 		try fd = fdset.check();
 
 		pthread_mutex_lock(lock);

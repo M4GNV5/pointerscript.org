@@ -45,7 +45,7 @@ function server(sendfd, receivefd)
 	wss.onclose = function(client)
 	{
 		puts("onclose");
-		delete clients.remove(client, (curr) -> curr.userdata == client.userdata);
+		try delete clients.remove(client, (curr) -> curr.userdata == client.userdata);
 	};
 	wss.onmessage = function(client, msg, len)
 	{
