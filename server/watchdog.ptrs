@@ -60,7 +60,7 @@ function waiter(sendfd)
 	{
 		var pid = wait!i32(NULL);
 		if(pid < 0)
-			continue;
+			return; //no processes left -> the waiter is done
 
 		pthread_mutex_lock(lock);
 
