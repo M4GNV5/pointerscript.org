@@ -105,6 +105,11 @@ function timeoutProc(pid)
 
 	if(proc)
 	{
+		//unfortunately using kill on the process tree is kind of bugged
+		//I assume its because the watchdog is somehow attached into the lxc
+		//but is not child of the lxc's init process.
+		//kill(-proc.pid, SIGKILL);
+
 		proc.timeoutKill = true;
 		system("killall -9 -u $USER_NAME");
 	}
