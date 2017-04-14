@@ -106,7 +106,7 @@ function timeoutProc(pid)
 	if(proc)
 	{
 		proc.timeoutKill = true;
-		system("killall -9 -u play");
+		system("killall -9 -u $USER_NAME");
 	}
 }
 
