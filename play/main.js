@@ -28,7 +28,7 @@ ws.onmessage = function(msg)
 	}
 	else
 	{
-		out.innerHTML += msg.data.replace(/</g, "&lt;");
+		out.innerHTML += msg.data.replace(/</g, "&lt;") + "\n";
 	}
 };
 ws.onerror = function(e)
